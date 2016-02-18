@@ -1,0 +1,110 @@
+users:
+  image: foo42/contextengine_services_users
+  environment:
+    - OFFLINE_MODE=true
+    - USER_DATA_PATH=/var/data/userSpecific
+    - SERVICE_NAME=users
+    - RABBITMQ_HOST=rabbitmq
+  ports:
+    - "9120:9120"
+  volumes:
+    - /var/contextEngine/services/users:/var/data
+  links:
+    - rabbitmq
+
+eventstamper:
+  build: .
+  command: node ./services/eventStamper/index.js
+  environment:
+    - OFFLINE_MODE=true
+    - SERVICE_NAME=eventStamper
+    - RABBITMQ_HOST=rabbitmq
+  links:
+    - rabbitmq
+
+historicalevents:
+  build: .
+  command: node ./services/historicalEventService/index.js
+  links:
+    - rabbitmq
+    - users
+  ports:
+    - "9110:9110"
+  volumes:
+    - /var/contextEngine/services/historicalevents:/var/data
+  environment:
+    - SERVICE_NAME=historicalEventService
+    - USER_DATA_PATH=/var/data/userdata/
+    - OFFLINE_MODE=true
+    - RABBITMQ_HOST=rabbitmq
+
+fsm:
+  build: .
+  command: node ./services/finiteStateMachines/index.js
+  links:
+    - rabbitmq
+    - users
+    - historicalevents
+  ports:
+    - "9111:9111"
+  environment:
+    - RABBITMQ_HOST=rabbitmq
+    - SERVICE_NAME=finiteStateMachines
+
+cron:
+  build: .
+  command: node ./services/cron/index.js
+  environment:
+    - SERVICE_NAME=cron
+    - RABBITMQ_HOST=rabbitmq
+  links:
+    - rabbitmq
+
+notifier:
+  build: .
+  command: node ./services/notifier/index.js
+  environment:
+    - SERVICE_NAME=notifier
+    - RABBITMQ_HOST=rabbitmq
+  links:
+    - rabbitmq
+    - users
+
+webfrontend:
+  build: .
+  command: node ./services/webFrontEnd/index.js
+  links:
+    - rabbitmq
+    - users
+    - historicalevents
+    - fsm
+  ports:
+    - "9005:9005"
+  environment:
+    - SERVICE_NAME=webFrontEnd
+    - OFFLINE_MODE=false
+    - RABBITMQ_HOST=rabbitmq
+    - VIRTUAL_HOST=contextify.me
+    - "GOOGLE_AUTH_CONFIG_PATH=/src/keys/googleAuth.json"
+    - HOST_NAME=contextify.me
+  volumes:
+    - /var/contextEngine/services/webfrontend/data:/var/data
+    - /var/contextEngine/keys:/src/keys
+
+contextengine:
+  build: .
+  links:
+    - rabbitmq
+    - users
+    - historicalevents
+    - fsm
+  environment:
+    - RABBITMQ_HOST=rabbitmq
+
+rabbitmq:
+  image: tutum/rabbitmq
+  ports:
+    - "5672:5672"
+    - "15672:15672"
+  environment:
+    - RABBITMQ_PASS=admin

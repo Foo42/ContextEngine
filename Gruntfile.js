@@ -4,7 +4,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-notify');
-  grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
@@ -29,14 +28,6 @@ module.exports = function (grunt) {
         },
         src: ['test/functional/**/*.js', 'services/*/test/functional/**/*.js']
       }
-    },
-    mocha: {
-      test: {
-        src: ['test/client/mocha/**/*.html'],
-        options: {
-          run: true
-        }
-      },
     },
     watch: {
       scripts: {

@@ -13,7 +13,7 @@ var initialise = function () {
 		client_id: process.env['GOOGLE_CLIENT_ID']
 	};
 	if (process.env['GOOGLE_AUTH_CONFIG_PATH']) {
-		var fullPath = path.join(process.cwd(), process.env['GOOGLE_AUTH_CONFIG_PATH'])
+		var fullPath = process.env['GOOGLE_AUTH_CONFIG_PATH'];
 		authConfig = require(fullPath).web;
 	}
 
