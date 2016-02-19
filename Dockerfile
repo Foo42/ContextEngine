@@ -1,7 +1,11 @@
 FROM node
-COPY . /src
+
 WORKDIR /src
-RUN date > imageBuildTime.txt
+
+ADD package.json /src/
+RUN npm install
+ADD . /src
+
 EXPOSE 9005
 ENV NODE_ENV production
 CMD ["node", "."]
